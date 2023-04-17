@@ -6,7 +6,7 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
 	let contents = fs::read_to_string(config.file_path)?;
 
 	let results = if config.ignore_case {
-		search_case_insensitive(&config.query, & contents)
+		search_case_insensitive(&config.query, &contents)
 	} else {
 		search(&config.query, &contents)
 	};
@@ -17,29 +17,20 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
 	Ok(())
 }
 
-pub fn search_case_insensitive<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
+pub fn search_case_insensitive<'a>(query: &str, contents: &'a str,) -> Vec<&'a str> {
     let query = query.to_lowercase();
-	let contents = contents.to_lowercase();
-    let mut results = Vec::new();
 
-    for line in contents.lines() {
-        if line.to_lowercase().contains(&query) {
-            results.push(line);
-        }
-    }
-
-    results
+	contents
+		.lines()
+		.filter(|line| line.to_lowercase().contains(&query))
+		.collect()
 }
 
-
 pub fn search<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
-	let mut result = Vec::new();
-	for line in contents.lines() {
-		if line.contains(query) {
-			result.push(line);
-		}
-	}
-	result
+	contents
+		.lines()
+		.filter(|line| line.contains(query))
+		.collect()
 }
 pub struct Config {
 	pub query: String,
@@ -48,16 +39,30 @@ pub struct Config {
 }
 
 impl Config {
-	pub fn build(args: &[String]) -> Result<Config, &'static str> {
+	pub fn build(mut args: impl Iterator<Item=String>) -> Result<Config, &'static str> {
 
-		if args.len() < 3 {
-			return Err("missing arguments");
-		}
+		args.next();
 
-		let query = args[1].clone();
-		let file_path = args[2].clone();
+		let query = match args.next() {
+			Some(arg) => arg,
+			None => return Err("Query not specified"),
+		};
 
-		let ignore_case = env::var("IGNORE_CASE").is_ok();
+		let file_path = match args.next() {
+			Some(arg) => arg,
+			None => return Err("Path not specified"),
+		};
+
+		let ignore_case: bool = if env::var("IGNORE_CASE").is_ok() {
+			if env::var("IGNORE_CASE").unwrap().eq("1") {
+				true
+			} else{
+				false
+			}
+		} else {
+			false
+		};
+
 
 		Ok(Config {query, file_path, ignore_case})
 	}
@@ -70,13 +75,24 @@ mod tests {
 	use super::*;
 
 	#[test]
-	fn one_result() {
-		let query = "duct";
+	fn case_sensetive() {
+		let query = "Rust";
 		let contents = "\
 Rust:
 safe, fast, productive.
 Pick three.";
 
-		assert_eq!(vec!["safe, fast, productive."], search(query, contents));
+		assert_eq!(vec!["Rust:"], search(query, contents));
+	}
+
+	#[test]
+	fn search_insensitive() {
+		let query = "pick";
+		let contents = "\
+Rust:
+safe, fast, productive.
+Pick three.";
+
+		assert_eq!(vec!["Pick three."], search_case_insensitive(query, contents));
 	}
 }
