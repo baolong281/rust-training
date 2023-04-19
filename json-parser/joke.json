@@ -1,0 +1,18 @@
+{
+    "error": false,
+    "category": "Programming",
+    "type": "twopart",
+    "setup": "Programming is like sex.",
+    "delivery": "Make one mistake and you end up supporting it for the rest of your life.",
+    "flags": {
+        "nsfw": true,
+        "religious": false,
+        "political": false,
+        "racist": false,
+        "sexist": false,
+        "explicit": true
+    },
+    "id": 8,
+    "safe": false,
+    "lang": "en"
+}
