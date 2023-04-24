@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-	use lexer::lexer::*;
+	use jsonparser::lexer;
 
 	#[test]
 	fn test_one() {
