@@ -4,12 +4,9 @@ use std::ops::{Index, IndexMut};
 static NULL: JsonValue = JsonValue::Null;
 
 pub mod jsonObject {
+	use super::*;
 
-	use std::process::Output;
-
-use super::*;
-
-	struct JsonObject {
+	pub struct JsonObject {
 		items: HashMap<&'static str, JsonValue>,
 	}
 
@@ -19,9 +16,15 @@ use super::*;
 			JsonObject { items }
 		}
 
-		pub fn put(&mut self, key: &'static str, val: JsonValue) {
-			self.items.insert(key, val);
+		pub fn put<T>(&mut self, key: &'static str, val: T) 
+		where json::JsonValue: From<T>,
+		{
+			self.items.insert(key, JsonValue::from(val));
 		}
+	}
+
+	pub fn get(&self, key: &'static str) {
+		self.items.get(key);
 	}
 
 	impl Index<&'static str> for JsonObject {
